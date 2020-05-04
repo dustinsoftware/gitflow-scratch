@@ -115,4 +115,11 @@ if ($mark_released) {
 
   RunWithSafetyCheck "git branch -d $branch_name"
   RunWithSafetyCheck "git push origin -d $branch_name"
+
+  $pendingMerges = InvokeAndCheckExit "git diff origin/$backmerge_branchname...origin/master"
+  if ($pendingMerges -eq $null) {
+    Write-Output "No backmerge required."
+  } else {
+    Write-Output "Backmerge required, please open: https://github.com/dustinsoftware/gitflow-scratch/compare/master?expand=1&title=Backmerge"
+  }
 }
