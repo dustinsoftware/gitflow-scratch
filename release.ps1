@@ -61,10 +61,10 @@ function RunWithSafetyCheck() {
 
 function CheckForPendingBackmerge() {
   param([string] $backmerge_branchname)
-  $pendingMerges = InvokeAndCheckExit "git log origin/$backmerge_branchname...origin/master --oneline --no-merges"
+  $pendingMerges = InvokeAndCheckExit "git diff origin/$backmerge_branchname...origin/master"
 
   if (!($pendingMerges -eq $null)) {
-    throw "Master has not been merged back into $backmerge_branchname. Please do that before making a new release."
+    throw "master contains commits not merged back into $backmerge_branchname. Please fix that before proceeding."
   }
 }
 
