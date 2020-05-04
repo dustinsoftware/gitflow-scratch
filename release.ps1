@@ -17,7 +17,6 @@ param(
 # - Missing hotfixes in develop when making a new branch or releasing an existing one (the latter is mostly a sanity check and would be bad if it happened on a real release)
 
 $ErrorActionPreference = "Stop"
-$versionRegex = "(\d{3,})(?:\.(\d{1,}))?"
 
 function InvokeAndCheckExit {
   param([string] $command)
@@ -76,22 +75,31 @@ function CheckForPendingBackmerge() {
   }
 }
 
-if (!($version -match $versionRegex)) {
-  throw "Version did not match the pattern 'major' or 'major.minor'"
-}
+function GetBranchName() {
+  param([string] $version)
 
-$matchedVersion = $version | Select-String -Pattern $versionRegex
-$major = $matchedVersion.matches.groups[1].value
-$minor = $matchedVersion.matches.groups[2].value
+  $versionRegex = "(\d{3,})(?:\.(\d{1,}))?"
+  if (!($version -match $versionRegex)) {
+    throw "Version did not match the pattern 'major' or 'major.minor'"
+  }
 
-$branch_name = "release-$major"
-if (!($minor -eq "")) {
-  $branch_name = "release-$major-$minor"
+  $matchedVersion = $version | Select-String -Pattern $versionRegex
+  $major = $matchedVersion.matches.groups[1].value
+  $minor = $matchedVersion.matches.groups[2].value
+
+  $branch_name = "release-$major"
+  if (!($minor -eq "")) {
+    $branch_name = "release-$major-$minor"
+  }
+
+  return $branch_name
 }
 
 if ($create_release) {
   InvokeAndCheckExit "git fetch origin"
   CheckForPendingBackmerge "develop"
+
+  $branch_name = GetBranchName
 
   if (DoesBranchExist "origin/$branch_name") {
     throw "Branch $branch_name already exists on remote, please delete it and try again"
@@ -109,6 +117,8 @@ if ($create_release) {
 
 if ($mark_released) {
   InvokeAndCheckExit "git fetch origin"
+
+  $branch_name = GetBranchName
 
   if (!(DoesBranchExist "origin/$branch_name")) {
     throw "Branch $branch_name does not exist on remote"
