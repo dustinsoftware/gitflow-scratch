@@ -64,7 +64,7 @@ function CheckForPendingBackmerge() {
   $pendingMerges = InvokeAndCheckExit "git diff origin/$backmerge_branchname...origin/master"
 
   if (!($pendingMerges -eq $null)) {
-    throw "master contains commits not merged back into $backmerge_branchname. Please fix that before proceeding."
+    throw "master contains commits not merged back into $backmerge_branchname. Please fix that before proceeding. https://github.com/dustinsoftware/gitflow-scratch/compare/master?expand=1&title=Backmerge"
   }
 }
 
