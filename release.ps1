@@ -1,13 +1,21 @@
 param(
   # The release version
   [string] $version,
-  # Skip Windows containers warning
   [switch] $create_release,
   # Mark a release as live
   [switch] $mark_released,
   # Skip pushing anything
   [switch] $safe_mode
 )
+
+# Release script that enforces a one way commit history on master.
+
+# How to test this:
+# - Normal flow: develop -> rc-branch -> master
+# - Hotfix flow: develop -> rc-branch -> hotfix into only rc-branch -> master
+# - Two hotfix flow: develop -> rc-branch & rc-branch2 -> 2 hotfixes separately into rc-branch and rc-branch2 -> master
+# - Missing hotfixes in develop when making a new branch or releasing an existing one (the latter is mostly a sanity check and would be bad if it happened on a real release)
+
 $ErrorActionPreference = "Stop"
 $versionRegex = "(\d{3,})(?:\.(\d{1,}))?"
 
