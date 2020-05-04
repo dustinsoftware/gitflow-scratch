@@ -116,7 +116,7 @@ if ($mark_released) {
   RunWithSafetyCheck "git branch -d $branch_name"
   RunWithSafetyCheck "git push origin -d $branch_name"
 
-  $pendingMerges = InvokeAndCheckExit "git diff origin/$branch_name...origin/master"
+  $pendingMerges = InvokeAndCheckExit "git diff origin/develop...origin/master"
   if ($pendingMerges -eq $null) {
     Write-Output "No backmerge required."
   } else {
