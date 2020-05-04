@@ -59,6 +59,14 @@ function RunWithSafetyCheck() {
   }
 }
 
+function CheckForPendingBackmerge() {
+  $pendingMerges = InvokeAndCheckExit "git log origin/develop...origin/master --oneline --no-merges"
+
+  if (!($pendingMerges -eq $null)) {
+    throw "Master has not been merged back into develop. Please do that before making a new release. $pendingMerges"
+  }
+}
+
 if (!($version -match $versionRegex)) {
   throw "Version did not match the pattern 'major' or 'major.minor'"
 }
@@ -74,6 +82,7 @@ if (!($minor -eq "")) {
 
 if ($create_release) {
   InvokeAndCheckExit "git fetch origin"
+  CheckForPendingBackmerge
 
   if (DoesBranchExist "origin/$branch_name") {
     throw "Branch $branch_name already exists on remote, please delete it and try again"
