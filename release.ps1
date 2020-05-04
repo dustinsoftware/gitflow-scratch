@@ -67,13 +67,13 @@ $matchedVersion = $version | Select-String -Pattern $versionRegex
 $major = $matchedVersion.matches.groups[1].value
 $minor = $matchedVersion.matches.groups[2].value
 
+$branch_name = "release-$major"
+if (!($minor -eq "")) {
+  $branch_name = "release-$major-$minor"
+}
+
 if ($create_release) {
   InvokeAndCheckExit "git fetch origin"
-
-  $branch_name = "release-$major"
-  if (!($minor -eq "")) {
-    $branch_name = "release-$major-$minor"
-  }
 
   if (DoesBranchExist "origin/$branch_name") {
     throw "Branch $branch_name already exists on remote, please delete it and try again"
@@ -90,5 +90,17 @@ if ($create_release) {
 }
 
 if ($mark_released) {
+  InvokeAndCheckExit "git fetch origin"
 
+  if (!(DoesBranchExist "origin/$branch_name")) {
+    throw "Branch $branch_name does not exist on remote"
+  }
+
+  InvokeAndCheckExit "git checkout origin/$branch_name"
+  RunWithSafetyCheck "git tag v$version"
+  RunWithSafetyCheck "git push origin HEAD:master"
+  RunWithSafetyCheck "git push origin --tags"
+
+  RunWithSafetyCheck "git branch -d $branch_name"
+  RunWithSafetyCheck "git push origin -d $branch_name"
 }
