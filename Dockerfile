@@ -61,3 +61,37 @@ RUN pwsh /app/release.ps1 -mark_released -version 101
 
 RUN git log --all --graph --decorate
 
+# Hotfix releases
+
+RUN echo 'hotfix workflow'
+FROM build
+
+RUN git checkout develop
+RUN echo hi >> README.md
+RUN git commit -a -m "Readme update"
+RUN git push origin develop
+
+RUN pwsh /app/release.ps1 -create_release -version 100
+
+RUN git checkout release-100
+RUN echo hi >> README.md
+RUN git commit -a -m "Hotfix readme update"
+RUN git push origin release-100
+
+RUN pwsh /app/release.ps1 -create_release -version 101
+
+RUN pwsh /app/release.ps1 -mark_released -version 100
+
+RUN pwsh /app/assertFail.ps1 "pwsh /app/release.ps1 -mark_released -version 101" "master contains commits not merged back into release-101"
+
+RUN git checkout release-101
+RUN git merge origin/master -m "Backmerge"
+RUN git push origin release-101
+
+RUN pwsh /app/release.ps1 -mark_released -version 101
+
+RUN git checkout develop
+RUN git merge origin/master -m "Backmerge"
+RUN git push origin develop
+
+RUN git log --all --graph --decorate
