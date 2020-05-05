@@ -128,7 +128,7 @@ if ($create_release) {
 if ($mark_released) {
   InvokeAndCheckExit "git fetch origin"
 
-  $branch_name = GetBranchName
+  $branch_name = GetBranchName $version
 
   if (!(DoesBranchExist "origin/$branch_name")) {
     throw "Branch $branch_name does not exist on remote"
