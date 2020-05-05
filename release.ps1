@@ -99,7 +99,17 @@ if ($create_release) {
   InvokeAndCheckExit "git fetch origin"
   CheckForPendingBackmerge "develop"
 
-  $branch_name = GetBranchName
+  if ($version -eq "") {
+    Write-Output "No version specified. Finding latest tag."
+    $allTags = InvokeAndCheckExit "git ls-remote --tags origin"
+    $maximum = ($allTags | Select-String -Pattern "refs\/tags\/v(\d+)" | % { "$($_.matches.groups[1])" } | Measure-Object -Maximum).Maximum
+    $version = $maximum + 1
+    Write-Output "Creating $version. Please type $version continue."
+    if (!((Read-Host) -eq $version)) {
+      throw "Sorry, cannot continue."
+    }
+  }
+  $branch_name = GetBranchName $version
 
   if (DoesBranchExist "origin/$branch_name") {
     throw "Branch $branch_name already exists on remote, please delete it and try again"
