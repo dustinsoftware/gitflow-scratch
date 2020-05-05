@@ -144,10 +144,23 @@ if ($mark_released) {
   RunWithSafetyCheck "git branch -d $branch_name"
   RunWithSafetyCheck "git push origin -d $branch_name"
 
+  # Develop always needs a merge
   $pendingMerges = InvokeAndCheckExit "git diff origin/develop...origin/master"
   if ($pendingMerges -eq $null) {
     Write-Output "No backmerge required."
   } else {
     Write-Output "Backmerge required, please open: https://github.com/dustinsoftware/gitflow-scratch/compare/master?expand=1&title=Backmerge"
+  }
+
+  # For any hotfix branches
+  $allRefs = InvokeAndCheckExit "git ls-remote origin"
+  foreach ($branch in $allRefs | Select-String -Pattern "refs\/heads\/(release-\d+)" | % { "$($_.matches.groups[1])" } )
+  {
+    $pendingMerges = InvokeAndCheckExit "git diff origin/$branch...origin/master"
+    if ($pendingMerges -eq $null) {
+      Write-Output "No backmerge required."
+    } else {
+      Write-Output "Backmerge required, please open: https://github.com/dustinsoftware/gitflow-scratch/compare/$branch...master?expand=1&title=Backmerge"
+    }
   }
 }
