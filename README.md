@@ -2,7 +2,7 @@
 
 ### [release.ps1](./release.ps1)
 
-Requirements: 
+Requirements:
 - Powershell or Powershell Core (Tested on Windows, OS X, and Linux)
 
 Usage:
@@ -17,3 +17,6 @@ Features:
 - Will stop creating a new release if there are hotfix commits missing from develop
 
 This repo uses Github Actions for verifying the various git flow scenarios.
+
+
+Test!
