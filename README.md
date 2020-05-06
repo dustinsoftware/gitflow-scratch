@@ -16,6 +16,8 @@ Features:
 - Will notify after finishing a release if there are pending hotfix commits to be merged back into develop
 - Will stop creating a new release if there are hotfix commits missing from develop
 
+Hotfix to 103
+
 This repo uses Github Actions for verifying the various git flow scenarios.
 
 
