@@ -17,5 +17,6 @@ Features:
 - Will stop creating a new release if there are hotfix commits missing from develop
 
 Hotfix to 103
+Hotfix to 103.1
 
 This repo uses Github Actions for verifying the various git flow scenarios.
