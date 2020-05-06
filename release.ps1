@@ -5,7 +5,8 @@ param(
   # Mark a release as live
   [switch] $mark_released,
   # Skip pushing anything
-  [switch] $safe_mode
+  [switch] $safe_mode,
+  [switch] $list_releases
 )
 
 # Release script that enforces a one way commit history on master.
@@ -95,6 +96,14 @@ function GetBranchName() {
   return $branch_name
 }
 
+if ($list_releases) {
+  InvokeAndCheckExit "git fetch origin"
+  $allRefs = InvokeAndCheckExit "git ls-remote origin"
+  foreach ($branch in $allRefs | Select-String -Pattern "refs\/heads\/(release-\d+(?:-\d+)*$)" | % { "$($_.matches.groups[1])" } ) {
+    Write-Output $branch
+  }
+}
+
 if ($create_release) {
   InvokeAndCheckExit "git fetch origin"
   CheckForPendingBackmerge "develop"
@@ -144,7 +153,6 @@ if ($mark_released) {
   RunWithSafetyCheck "git branch -d $branch_name"
   RunWithSafetyCheck "git push origin -d $branch_name"
 
-  # Develop always needs a merge
   $pendingMerges = InvokeAndCheckExit "git diff origin/develop...origin/master"
   if ($pendingMerges -eq $null) {
     Write-Output "No backmerge required."
@@ -154,13 +162,13 @@ if ($mark_released) {
 
   # For any hotfix branches
   $allRefs = InvokeAndCheckExit "git ls-remote origin"
-  foreach ($branch in $allRefs | Select-String -Pattern "refs\/heads\/(release-\d+)" | % { "$($_.matches.groups[1])" } )
+  foreach ($branch in $allRefs | Select-String -Pattern "refs\/heads\/(release-\d+(?:-\d+)*$)" | % { "$($_.matches.groups[1])" } )
   {
     $pendingMerges = InvokeAndCheckExit "git diff origin/$branch...origin/master"
     if ($pendingMerges -eq $null) {
-      Write-Output "No backmerge required."
+      Write-Output "No backmerge required for $branch."
     } else {
-      Write-Output "Backmerge required, please open: https://github.com/dustinsoftware/gitflow-scratch/compare/$branch...master?expand=1&title=Backmerge"
+      Write-Output "Backmerge required for $branch, please open: https://github.com/dustinsoftware/gitflow-scratch/compare/$branch...master?expand=1&title=Backmerge"
     }
   }
 }

@@ -23,9 +23,10 @@ RUN git push --set-upstream origin master
 RUN git checkout -b develop
 RUN git push --set-upstream origin develop
 
+
 # Typical workflow
-RUN echo 'typical workflow'
 FROM build
+RUN echo 'typical workflow'
 
 RUN echo hi >> README.md
 
@@ -39,8 +40,8 @@ RUN git log --all --graph --decorate
 
 # Two releases
 
-RUN echo 'two release workflow'
 FROM build
+RUN echo 'two release workflow'
 
 RUN git checkout develop
 RUN echo hi >> README.md
@@ -49,22 +50,28 @@ RUN git push origin develop
 
 RUN pwsh /app/release.ps1 -create_release -version 100
 
+RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -list_releases" "release-100" -assertExactMatch -assertPass
+
 RUN git checkout develop
 RUN echo hi >> README.md
 RUN git commit -a -m "Readme update"
 RUN git push origin develop
 
 RUN pwsh /app/release.ps1 -create_release -version 101
+RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -list_releases" "release-100 release-101" -assertExactMatch -assertPass
 
 RUN pwsh /app/release.ps1 -mark_released -version 100
+RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -list_releases" "release-101" -assertExactMatch -assertPass
 RUN pwsh /app/release.ps1 -mark_released -version 101
+
+RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -list_releases" "" -assertExactMatch -assertPass
 
 RUN git log --all --graph --decorate
 
 # Hotfix releases
 
-RUN echo 'hotfix workflow'
 FROM build
+RUN echo 'hotfix workflow'
 
 RUN git checkout develop
 RUN echo hi >> README.md
@@ -82,7 +89,7 @@ RUN pwsh /app/release.ps1 -create_release -version 101
 
 RUN pwsh /app/release.ps1 -mark_released -version 100
 
-RUN pwsh /app/assertFail.ps1 "pwsh /app/release.ps1 -mark_released -version 101" "master contains commits not merged back into release-101"
+RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -mark_released -version 101" "master contains commits not merged back into release-101" -assertPartialMatch -assertFail
 
 RUN git checkout release-101
 RUN git merge origin/master -m "Backmerge"
@@ -95,3 +102,17 @@ RUN git merge origin/master -m "Backmerge"
 RUN git push origin develop
 
 RUN git log --all --graph --decorate
+
+# List releases
+
+FROM build
+RUN echo 'list releases'
+
+RUN pwsh /app/release.ps1 -create_release -version 100
+RUN pwsh /app/release.ps1 -create_release -version 100.1
+RUN pwsh /app/release.ps1 -create_release -version 101
+
+RUN git checkout -b release-100-2-somedata
+RUN git push origin release-100-2-somedata
+
+RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -list_releases" "release-100 release-100-1 release-101" -assertExactMatch -assertPass
