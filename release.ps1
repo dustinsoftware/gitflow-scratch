@@ -36,6 +36,7 @@ function InvokeAndCheckExit {
 
 function DoesBranchExist {
   param([string] $branch)
+  # Can we rewrite stderr to hide git output?
   $output = Invoke-Expression "git log -1 --pretty=%h $branch"
   if (!($LastExitCode -eq 0)) {
     return $false
@@ -129,8 +130,15 @@ if ($create_release) {
     throw "Branch $branch_name already exists locally, please delete it and try again"
   }
 
+  if (!($Env:CI -eq '1')) {
+    Write-Output "About to create $branch_name. Type OK to continue"
+    if (!((Read-Host) -ieq 'ok')) {
+      throw "Sorry, cannot continue."
+    }
+  }
+
   InvokeAndCheckExit "git checkout origin/develop"
-  InvokeAndCheckExit "git checkout -b $branch_name"
+  RunWithSafetyCheck "git checkout -b $branch_name"
   RunWithSafetyCheck "git push origin HEAD:$branch_name"
 
   Write-Output "Branch $branch_name created and pushed."
@@ -154,6 +162,13 @@ if ($create_hotfix_release) {
     throw "Backmerge required from master into $hotfix_base_branch first."
   }
 
+  if (!($Env:CI -eq '1')) {
+    Write-Output "About to create $hotfix_new_branch based off of $hotfix_base_branch. Type OK to continue"
+    if (!((Read-Host) -ieq 'ok')) {
+      throw "Sorry, cannot continue."
+    }
+  }
+
   RunWithSafetyCheck "git checkout origin/$hotfix_base_branch"
   RunWithSafetyCheck "git checkout -b $hotfix_new_branch"
   RunWithSafetyCheck "git push origin $hotfix_new_branch"
@@ -174,6 +189,14 @@ if ($mark_released) {
   CheckForPendingBackmerge "$branch_name"
 
   InvokeAndCheckExit "git checkout origin/$branch_name"
+
+  if (!($Env:CI -eq '1')) {
+    Write-Output "About to mark $branch_name as released and push tags for $version. Type OK to continue"
+    if (!((Read-Host) -ieq 'ok')) {
+      throw "Sorry, cannot continue."
+    }
+  }
+
   RunWithSafetyCheck "git tag v$version"
   RunWithSafetyCheck "git push origin HEAD:master"
   RunWithSafetyCheck "git push origin --tags"
@@ -183,7 +206,7 @@ if ($mark_released) {
 
   $pendingMerges = InvokeAndCheckExit "git diff origin/develop...origin/master"
   if ($pendingMerges -eq $null) {
-    Write-Output "No backmerge required."
+    Write-Output "No backmerge required to develop."
   } else {
     Write-Output "Backmerge required, please open: https://github.com/dustinsoftware/gitflow-scratch/compare/master?expand=1&title=Backmerge"
   }

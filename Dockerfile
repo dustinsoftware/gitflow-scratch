@@ -23,6 +23,7 @@ RUN git push --set-upstream origin master
 RUN git checkout -b develop
 RUN git push --set-upstream origin develop
 
+ENV CI=1
 
 # Typical workflow
 FROM build
