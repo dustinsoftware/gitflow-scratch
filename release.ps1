@@ -165,6 +165,9 @@ if ($mark_released) {
   if (!(DoesBranchExist "origin/$branch_name")) {
     throw "Branch $branch_name does not exist on remote"
   }
+  if (!(DoesBranchExist "origin/master")) {
+    throw "Branch master does not exist on remote"
+  }
 
   CheckForPendingBackmerge "$branch_name"
 
