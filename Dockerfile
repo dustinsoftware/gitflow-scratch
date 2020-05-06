@@ -87,7 +87,15 @@ RUN git push origin release-100
 
 RUN pwsh /app/release.ps1 -create_release -version 101
 
+RUN pwsh /app/release.ps1 -create_hotfix_release -version 100.1 -hotfix_base_branch release-100
+
+RUN git checkout release-100-1
+RUN echo hi >> README.md
+RUN git commit -a -m "Hotfix readme update"
+RUN git push origin release-100-1
+
 RUN pwsh /app/release.ps1 -mark_released -version 100
+RUN pwsh /app/release.ps1 -mark_released -version 100.1
 
 RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -mark_released -version 101" "master contains commits not merged back into release-101" -assertPartialMatch -assertFail
 

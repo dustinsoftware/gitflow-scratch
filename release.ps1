@@ -4,7 +4,6 @@ param(
   [switch] $create_release,
   [switch] $create_hotfix_release,
   [string] $hotfix_base_branch,
-  [string] $hotfix_new_branch,
   # Mark a release as live
   [switch] $mark_released,
   # Skip pushing anything
@@ -141,9 +140,12 @@ if ($create_hotfix_release) {
   if ($hotfix_base_branch -eq $null) {
     throw "Please specify -hotfix_base_branch"
   }
-  if ($hotfix_new_branch -eq $null) {
-    throw "Please specify -hotfix_new_branch"
+  if ($version -eq $null) {
+    throw "Please specify -version"
   }
+
+  $hotfix_new_branch = GetBranchName $version
+
   if (!(DoesBranchExist "origin/$hotfix_base_branch")) {
     throw "Branch $hotfix_base_branch does not exist on remote"
   }
