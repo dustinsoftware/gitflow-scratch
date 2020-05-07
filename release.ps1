@@ -55,11 +55,6 @@ if (!(Test-Path "$PSScriptRoot\.git")) {
   Throw "The .git directory was not found locally."
 }
 
-function GetDirectoryGitHash() {
-  param([string] $branch)
-  return InvokeAndCheckExit "git log -1 --pretty=%h $branch"
-}
-
 function RunWithSafetyCheck() {
   param([string] $command)
   if ($safe_mode) {
