@@ -107,9 +107,8 @@ if ($list_releases) {
   if (!($Env:CI -eq '1')) {
     Write-Output "Last 5 tags:"
   }
-  foreach ($branch in $allRefs | Select-String -Pattern "refs\/tags\/(.*)$" | % { "$($_.matches.groups[1])" } | Select -Last 5 ) {
-    Write-Output "Tag $branch"
-  }
+  $lastFiveTags = ($allRefs | Select-String -Pattern "refs\/tags\/(v\d+(?:\.\d+)*$)" | % { "$($_.matches.groups[1])" } | Sort-Object -Descending | Select -First 5)
+  Write-Output $lastFiveTags
 }
 
 if ($create_release) {
