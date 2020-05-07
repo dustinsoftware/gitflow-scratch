@@ -61,9 +61,9 @@ RUN git push origin develop
 RUN pwsh /app/release.ps1 -create_release -version 101
 RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -list_releases" "Branch release-100 Branch release-101" -assertExactMatch -assertPass
 
-RUN pwsh /app/release.ps1 -mark_released -version 100
+RUN pwsh /app/release.ps1 -mark_released -create_tag -version 100
 RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -list_releases" "Branch release-101 Tag v100" -assertExactMatch -assertPass
-RUN pwsh /app/release.ps1 -mark_released -version 101
+RUN pwsh /app/release.ps1 -mark_released -create_tag -version 101
 
 RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -list_releases" "Tag v100 Tag v101" -assertExactMatch -assertPass
 
@@ -95,8 +95,8 @@ RUN echo hi >> README.md
 RUN git commit -a -m "Hotfix readme update"
 RUN git push origin release-100-1
 
-RUN pwsh /app/release.ps1 -mark_released -version 100
-RUN pwsh /app/release.ps1 -mark_released -version 100.1
+RUN pwsh /app/release.ps1 -mark_released -create_tag -version 100
+RUN pwsh /app/release.ps1 -mark_released -create_tag -version 100.1
 
 RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -mark_released -version 101" "master contains commits not merged back into release-101" -assertPartialMatch -assertFail
 
@@ -104,7 +104,7 @@ RUN git checkout release-101
 RUN git merge origin/master -m "Backmerge"
 RUN git push origin release-101
 
-RUN pwsh /app/release.ps1 -mark_released -version 101
+RUN pwsh /app/release.ps1 -mark_released -create_tag -version 101
 
 RUN git checkout develop
 RUN git merge origin/master -m "Backmerge"
@@ -117,9 +117,9 @@ RUN git log --all --graph --decorate
 FROM build
 RUN echo 'list releases'
 
-RUN pwsh /app/release.ps1 -create_release -version 100
-RUN pwsh /app/release.ps1 -create_release -version 100.1
-RUN pwsh /app/release.ps1 -create_release -version 101
+RUN pwsh /app/release.ps1 -create_release -create_tag -version 100
+RUN pwsh /app/release.ps1 -create_release -create_tag -version 100.1
+RUN pwsh /app/release.ps1 -create_release -create_tag -version 101
 
 RUN git checkout -b release-100-2-somedata
 RUN git push origin release-100-2-somedata

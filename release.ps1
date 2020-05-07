@@ -8,7 +8,8 @@ param(
   [switch] $mark_released,
   # Skip pushing anything
   [switch] $safe_mode,
-  [switch] $list_releases
+  [switch] $list_releases,
+  [switch] $create_tag # some CI environments will tag releases
 )
 
 # Release script that enforces a one way commit history on master.
@@ -194,9 +195,15 @@ if ($mark_released) {
     }
   }
 
-  RunWithSafetyCheck "git tag v$version"
-  RunWithSafetyCheck "git push origin HEAD:master"
-  RunWithSafetyCheck "git push origin --tags"
+  if ($create_tag) {
+    if (DoesRefExist "refs/tags/$version") {
+      Write-Output "Tag $version already exists on remote, skipping"
+    } else {
+      RunWithSafetyCheck "git tag v$version"
+      RunWithSafetyCheck "git push origin HEAD:master"
+      RunWithSafetyCheck "git push origin --tags"
+    }
+  }
 
   RunWithSafetyCheck "git branch -d $branch_name"
   RunWithSafetyCheck "git push origin -d $branch_name"
