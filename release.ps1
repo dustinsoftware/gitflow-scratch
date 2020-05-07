@@ -77,18 +77,21 @@ function CheckForPendingBackmerge() {
 function GetBranchName() {
   param([string] $version)
 
-  $versionRegex = "(\d{3,})(?:\.(\d{1,}))?"
-  if (!($version -match $versionRegex)) {
-    throw "Version did not match the pattern 'major' or 'major.minor'. Eg. '123.4' instead of 'release-123-4'."
+  $patchPattern = "^(\d+)(?:\.(\d+))(?:\.(\d+))$"
+  $minorPattern = "^(\d+)(?:\.(\d+))$"
+  $majorPattern = "^(\d+)$"
+
+  if ($version -Match $patchPattern) {
+    $branch_name = $version | Select-String -Pattern $patchPattern | % { "release-$($_.matches.groups[1])-$($_.matches.groups[2])-$($_.matches.groups[3])" }
   }
-
-  $matchedVersion = $version | Select-String -Pattern $versionRegex
-  $major = $matchedVersion.matches.groups[1].value
-  $minor = $matchedVersion.matches.groups[2].value
-
-  $branch_name = "release-$major"
-  if (!($minor -eq "")) {
-    $branch_name = "release-$major-$minor"
+  elseif ($version -Match $minorPattern) {
+    $branch_name = $version | Select-String -Pattern $minorPattern | % { "release-$($_.matches.groups[1])-$($_.matches.groups[2])" }
+  }
+  elseif ($version -Match $majorPattern) {
+    $branch_name = $version | Select-String -Pattern $majorPattern | % { "release-$($_.matches.groups[1])" }
+  }
+  else {
+    throw "Version did not match the pattern 'major' or 'major.minor' or 'major.minor.patch'. Eg. '123.4' instead of 'release-123-4'."
   }
 
   return $branch_name

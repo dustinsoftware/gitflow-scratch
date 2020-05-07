@@ -139,3 +139,21 @@ RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -list_releases" "https://g
 RUN git remote rm origin
 RUN git remote add origin git@github.com:dustinsoftware/gitflow-scratch.git
 RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -list_releases" "https://github.com/dustinsoftware/gitflow-scratch" -assertPartialMatch
+
+# Major.minor.patch release
+
+FROM build
+RUN echo 'typical workflow'
+
+RUN echo hi >> README.md
+
+RUN git commit -a -m "Readme update"
+RUN git push origin develop
+
+RUN pwsh /app/release.ps1 -create_release -version 100
+RUN pwsh /app/release.ps1 -create_release -version 100.1
+RUN pwsh /app/release.ps1 -create_release -version 100.1.1
+
+RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -create_release -version 100.1.1.1" -assertFail
+
+RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -list_releases" "/git-upstream/.git Branch release-100 Branch release-100-1 Branch release-100-1-1" -assertExactMatch -assertPass
