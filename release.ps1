@@ -95,7 +95,7 @@ function GetBranchName() {
 }
 
 if ($list_releases) {
-  InvokeAndCheckExit "git fetch origin"
+  InvokeAndCheckExit "git fetch origin 2>&1"
   $allRefs = InvokeAndCheckExit "git ls-remote origin"
   if (!($Env:CI -eq '1')) {
     Write-Output "Current release branches:"
@@ -113,7 +113,7 @@ if ($list_releases) {
 }
 
 if ($create_release) {
-  InvokeAndCheckExit "git fetch origin"
+  InvokeAndCheckExit "git fetch origin 2>&1"
   CheckForPendingBackmerge "develop"
 
   if ($version -eq "") {
@@ -173,7 +173,7 @@ if ($create_hotfix_release) {
 }
 
 if ($mark_released) {
-  InvokeAndCheckExit "git fetch origin"
+  InvokeAndCheckExit "git fetch origin 2>&1"
 
   $branch_name = GetBranchName $version
 
