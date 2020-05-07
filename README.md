@@ -11,7 +11,7 @@ Usage:
 - `pwsh /app/release.ps1 -create_release -version 100`
 - `pwsh /app/release.ps1 -create_hotfix_release -version 100.1 -hotfix_base_branch master`
 - `pwsh /app/release.ps1 -mark_released -version 100`
-- `pwsh /app/release.ps1 -backmerge` (in case someone did not complete the backmerge steps during `-mark_released`)
+- `pwsh /app/release.ps1 -backmerge -backmerge_branchname master` (in case someone did not complete the backmerge steps during `-mark_released`)
 
 To test out any of the commands above, pass `-safe_mode` as an argument. No changes will be made to the repo.
 
