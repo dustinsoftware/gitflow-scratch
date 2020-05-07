@@ -52,10 +52,6 @@ function VerifyDirectory {
   }
 }
 
-if (!(Test-Path "$PSScriptRoot\.git")) {
-  Throw "The .git directory was not found locally."
-}
-
 function RunWithSafetyCheck() {
   param([string] $command)
   if ($safe_mode) {
