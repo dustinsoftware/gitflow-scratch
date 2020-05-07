@@ -100,14 +100,14 @@ if ($list_releases) {
   if (!($Env:CI -eq '1')) {
     Write-Output "Current release branches:"
   }
-  foreach ($branch in $allRefs | Select-String -Pattern "refs\/heads\/(release-\d+(?:-\d+)*$)" | % { "$($_.matches.groups[1])" } ) {
+  foreach ($branch in $allRefs | Select-String -Pattern "refs\/heads\/(release-\d+(?:-\d+){0,2}$)" | % { "$($_.matches.groups[1])" } ) {
     Write-Output "Branch $branch"
   }
 
   if (!($Env:CI -eq '1')) {
     Write-Output "Last 5 tagged releases:"
   }
-  $lastFiveTags = ($allRefs | Select-String -Pattern "refs\/tags\/v(\d+(?:\.\d+)*$)" | % { "$($_.matches.groups[1])" } | Sort-Object -Descending { [Version] "$_.0" } | Select -First 5)
+  $lastFiveTags = ($allRefs | Select-String -Pattern "refs\/tags\/v(\d+(?:\.\d+){0,2}$)" | % { "$($_.matches.groups[1])" } | Sort-Object -Descending { [Version] "$_.0" } | Select -First 5)
   Write-Output $lastFiveTags
 }
 
@@ -216,7 +216,7 @@ if ($mark_released) {
 
   # For any hotfix branches
   $allRefs = InvokeAndCheckExit "git ls-remote origin"
-  foreach ($branch in $allRefs | Select-String -Pattern "refs\/heads\/(release-\d+(?:-\d+)*$)" | % { "$($_.matches.groups[1])" } )
+  foreach ($branch in $allRefs | Select-String -Pattern "refs\/heads\/(release-\d+(?:-\d+){0,2}$)" | % { "$($_.matches.groups[1])" } )
   {
     $pendingMerges = InvokeAndCheckExit "git diff origin/$branch...origin/master"
     if ($pendingMerges -eq $null) {
