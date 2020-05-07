@@ -17,3 +17,7 @@ Features:
 - Will stop creating a new release if there are hotfix commits missing from develop
 
 This repo uses Github Actions for verifying the various git flow scenarios.
+
+Scratchpad:
+
+- hotfix commit to release-104-2
