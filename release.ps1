@@ -94,7 +94,19 @@ function GetBranchName() {
   return $branch_name
 }
 
+function GetGithubUrl {
+  $output = InvokeAndCheckExit "git remote get-url origin"
+  # Not intended to be comprehensive of all possible repo names.
+  $remoteRegex = "github.com(?:\/|:)([\w-_]+)\/([\w-_]+)"
+  if ($output -Match $remoteRegex) {
+    return $output | Select-String -Pattern $remoteRegex | % { "https://github.com/$($_.matches.groups[1])/$($_.matches.groups[2])"}
+  } else {
+    return $output
+  }
+}
+
 if ($list_releases) {
+  GetGithubUrl
   InvokeAndCheckExit "git fetch origin -q"
   $allRefs = InvokeAndCheckExit "git ls-remote origin"
   if (!($Env:CI -eq '1')) {
@@ -211,7 +223,7 @@ if ($mark_released) {
   if ($pendingMerges -eq $null) {
     Write-Output "No backmerge required to develop."
   } else {
-    Write-Output "Backmerge required, please open: https://github.com/dustinsoftware/gitflow-scratch/compare/master?expand=1&title=Backmerge"
+    Write-Output "Backmerge required, please open: $(GetGithubUrl)/compare/master?expand=1&title=Backmerge"
   }
 
   # For any hotfix branches
@@ -222,7 +234,7 @@ if ($mark_released) {
     if ($pendingMerges -eq $null) {
       Write-Output "No backmerge required for $branch."
     } else {
-      Write-Output "Backmerge required for $branch, please open: https://github.com/dustinsoftware/gitflow-scratch/compare/$branch...master?expand=1&title=Backmerge"
+      Write-Output "Backmerge required for $branch, please open: $(GetGithubUrl)/compare/$branch...master?expand=1&title=Backmerge"
     }
   }
 }
