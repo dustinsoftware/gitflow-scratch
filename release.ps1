@@ -105,9 +105,9 @@ if ($list_releases) {
   }
 
   if (!($Env:CI -eq '1')) {
-    Write-Output "Last 5 tags:"
+    Write-Output "Last 5 tagged releases:"
   }
-  $lastFiveTags = ($allRefs | Select-String -Pattern "refs\/tags\/(v\d+(?:\.\d+)*$)" | % { "$($_.matches.groups[1])" } | Sort-Object -Descending | Select -First 5)
+  $lastFiveTags = ($allRefs | Select-String -Pattern "refs\/tags\/v(\d+(?:\.\d+)*$)" | % { "$($_.matches.groups[1])" } | Sort-Object -Descending { [Version] "$_.0" } | Select -First 5)
   Write-Output $lastFiveTags
 }
 
