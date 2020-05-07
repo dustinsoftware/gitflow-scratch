@@ -34,10 +34,9 @@ function InvokeAndCheckExit {
   return $output
 }
 
-function DoesBranchExist {
-  param([string] $branch)
-  # Can we rewrite stderr to hide git output?
-  $output = Invoke-Expression "git log -1 --pretty=%h $branch"
+function DoesRefExist {
+  param([string] $ref)
+  $output = Invoke-Expression "git show-ref $ref "
   if (!($LastExitCode -eq 0)) {
     return $false
   }
@@ -123,10 +122,10 @@ if ($create_release) {
   }
   $branch_name = GetBranchName $version
 
-  if (DoesBranchExist "origin/$branch_name") {
+  if (DoesRefExist "refs/remotes/origin/$branch_name") {
     throw "Branch $branch_name already exists on remote, please delete it and try again"
   }
-  if (DoesBranchExist "$branch_name") {
+  if (DoesRefExist "refs/heads/$branch_name") {
     throw "Branch $branch_name already exists locally, please delete it and try again"
   }
 
@@ -137,7 +136,7 @@ if ($create_release) {
     }
   }
 
-  InvokeAndCheckExit "git checkout origin/develop"
+  InvokeAndCheckExit "git checkout -q origin/develop"
   RunWithSafetyCheck "git checkout -b $branch_name"
   RunWithSafetyCheck "git push origin HEAD:$branch_name"
 
@@ -154,7 +153,7 @@ if ($create_hotfix_release) {
 
   $hotfix_new_branch = GetBranchName $version
 
-  if (!(DoesBranchExist "origin/$hotfix_base_branch")) {
+  if (!(DoesRefExist "refs/remotes/origin/$hotfix_base_branch")) {
     throw "Branch $hotfix_base_branch does not exist on remote"
   }
   $pendingMerges = InvokeAndCheckExit "git diff origin/$hotfix_base_branch...origin/master"
@@ -169,7 +168,7 @@ if ($create_hotfix_release) {
     }
   }
 
-  RunWithSafetyCheck "git checkout origin/$hotfix_base_branch"
+  RunWithSafetyCheck "git checkout -q origin/$hotfix_base_branch"
   RunWithSafetyCheck "git checkout -b $hotfix_new_branch"
   RunWithSafetyCheck "git push origin $hotfix_new_branch"
 }
@@ -179,16 +178,16 @@ if ($mark_released) {
 
   $branch_name = GetBranchName $version
 
-  if (!(DoesBranchExist "origin/$branch_name")) {
+  if (!(DoesRefExist "refs/remotes/origin/$branch_name")) {
     throw "Branch $branch_name does not exist on remote"
   }
-  if (!(DoesBranchExist "origin/master")) {
+  if (!(DoesRefExist "refs/remotes/origin/master")) {
     throw "Branch master does not exist on remote"
   }
 
   CheckForPendingBackmerge "$branch_name"
 
-  InvokeAndCheckExit "git checkout origin/$branch_name"
+  InvokeAndCheckExit "git checkout -q origin/$branch_name"
 
   if (!($Env:CI -eq '1')) {
     Write-Output "About to mark $branch_name as released and push tags for $version. Type OK to continue"
