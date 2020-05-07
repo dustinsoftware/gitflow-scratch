@@ -125,3 +125,17 @@ RUN git checkout -b release-100-2-somedata
 RUN git push origin release-100-2-somedata
 
 RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -list_releases" "/git-upstream/.git Branch release-100 Branch release-100-1 Branch release-101" -assertExactMatch -assertPass
+
+# Github URL mapping
+
+FROM build
+RUN echo 'github url testing'
+
+RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -list_releases" "/git-upstream/.git" -assertExactMatch -assertPass
+RUN git remote rm origin
+RUN git remote add origin https://github.com/dustinsoftware/gitflow-scratch.git
+RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -list_releases" "https://github.com/dustinsoftware/gitflow-scratch" -assertPartialMatch
+
+RUN git remote rm origin
+RUN git remote add origin git@github.com:dustinsoftware/gitflow-scratch.git
+RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -list_releases" "https://github.com/dustinsoftware/gitflow-scratch" -assertPartialMatch
