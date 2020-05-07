@@ -153,10 +153,10 @@ if ($create_release) {
 }
 
 if ($create_hotfix_release) {
-  if ($hotfix_base_branch -eq $null) {
+  if ($hotfix_base_branch -eq "") {
     throw "Please specify -hotfix_base_branch"
   }
-  if ($version -eq $null) {
+  if ($version -eq "") {
     throw "Please specify -version"
   }
 
