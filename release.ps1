@@ -161,7 +161,7 @@ if ($create_release) {
   }
 
   if (!($Env:CI -eq '1')) {
-    Write-Output "About to create $branch_name. Type OK to continue"
+    Write-Host -ForegroundColor yellow "About to create $branch_name. Type OK to continue"
     if (!((Read-Host) -ieq 'ok')) {
       throw "Sorry, cannot continue."
     }
@@ -193,7 +193,7 @@ if ($create_hotfix_release) {
   }
 
   if (!($Env:CI -eq '1')) {
-    Write-Output "About to create $hotfix_new_branch based off of $hotfix_base_branch. Type OK to continue"
+    Write-Host -ForegroundColor yellow "About to create $hotfix_new_branch based off of $hotfix_base_branch. Type OK to continue"
     if (!((Read-Host) -ieq 'ok')) {
       throw "Sorry, cannot continue."
     }
@@ -221,7 +221,7 @@ if ($mark_released) {
   InvokeAndCheckExit "git checkout -q origin/$branch_name"
 
   if (!($Env:CI -eq '1')) {
-    Write-Output "About to mark $branch_name as released. Type OK to continue"
+    Write-Host -ForegroundColor yellow "About to mark $branch_name as released. Type OK to continue"
     if (!((Read-Host) -ieq 'ok')) {
       throw "Sorry, cannot continue."
     }
