@@ -9,6 +9,7 @@ param(
   [switch] $backmerge,
   # Optional args
   [string] $hotfix_base_branch,
+  [string] $backmerge_branchname,
   [switch] $safe_mode, # Skip pushing anything
   [switch] $create_tag # some CI environments will tag releases,
 )
@@ -106,22 +107,26 @@ function GetGithubUrl {
 }
 
 function Backmerge {
-  $pendingMerges = InvokeAndCheckExit "git diff origin/develop...origin/master"
+  param([string] $backmerge_branchname)
+
+  $pendingMerges = InvokeAndCheckExit "git diff origin/develop...origin/$($backmerge_branchname)"
   if ($pendingMerges -eq $null) {
-    Write-Output "No backmerge required to develop."
+    Write-Host "No backmerge required for develop."
   } else {
-    Write-Output "Backmerge required, please open: $(GetGithubUrl)/compare/master?expand=1&title=Backmerge+from+master+to+develop&body=Backmerge"
+    Write-Host -ForegroundColor yellow -NoNewLine "Backmerge required for develop, please open: "
+    Write-Host "$(GetGithubUrl)/compare/$($backmerge_branchname)?expand=1&title=Backmerge+from+$($backmerge_branchname)+to+develop&body=Backmerge"
   }
 
   # For any hotfix branches
   $allRefs = InvokeAndCheckExit "git ls-remote origin"
   foreach ($branch in $allRefs | Select-String -Pattern "refs\/heads\/(release-\d+(?:-\d+){0,2}$)" | % { "$($_.matches.groups[1])" } )
   {
-    $pendingMerges = InvokeAndCheckExit "git diff origin/$branch...origin/master"
+    $pendingMerges = InvokeAndCheckExit "git diff origin/$branch...origin/$($backmerge_branchname)"
     if ($pendingMerges -eq $null) {
-      Write-Output "No backmerge required for $branch."
+      Write-Host "No backmerge required for $branch."
     } else {
-      Write-Output "Backmerge required for $branch, please open: $(GetGithubUrl)/compare/$branch...master?expand=1&title=Backmerge+from+master+to+$branch&body=Backmerge"
+      Write-Host -ForegroundColor yellow -NoNewLine "Backmerge required for $branch, please open: "
+      Write-Host "$(GetGithubUrl)/compare/$branch...$($backmerge_branchname)?expand=1&title=Backmerge+from+$backmerge_branchname+to+$branch&body=Backmerge"
     }
   }
 }
@@ -244,9 +249,13 @@ if ($mark_released) {
   RunWithSafetyCheck "git branch -d $branch_name"
   RunWithSafetyCheck "git push origin -d $branch_name"
 
-  Backmerge
+  Backmerge "master"
 }
 
 if ($backmerge) {
-  Backmerge
+  InvokeAndCheckExit "git fetch origin -q"
+  if ($backmerge_branchname -eq "") {
+    throw "Please specify `-backmerge_branchname` to base the backmerge off of, such as master or release-123."
+  }
+  Backmerge $backmerge_branchname
 }
