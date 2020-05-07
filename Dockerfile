@@ -65,7 +65,7 @@ RUN pwsh /app/release.ps1 -mark_released -create_tag -version 100
 RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -list_releases" "Branch release-101 Tag v100" -assertExactMatch -assertPass
 RUN pwsh /app/release.ps1 -mark_released -create_tag -version 101
 
-RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -list_releases" "Tag v100 Tag v101" -assertExactMatch -assertPass
+RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -list_releases" "Tag v101 Tag v100" -assertExactMatch -assertPass
 
 RUN git log --all --graph --decorate
 
