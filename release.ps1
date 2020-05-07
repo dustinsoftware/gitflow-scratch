@@ -67,7 +67,7 @@ function CheckForPendingBackmerge() {
   $pendingMerges = InvokeAndCheckExit "git diff origin/$backmerge_branchname...origin/master"
 
   if (!($pendingMerges -eq $null)) {
-    throw "master contains commits not merged back into $backmerge_branchname. Please fix that before proceeding. $(GetGithubUrl)/compare/master?expand=1&title=Backmerge+from+master+to+develop"
+    throw "master contains commits not merged back into $backmerge_branchname. Please fix that before proceeding. $(GetGithubUrl)/compare/master?expand=1&title=Backmerge+from+master+to+develop&body=Backmerge"
   }
 }
 
@@ -110,7 +110,7 @@ function Backmerge {
   if ($pendingMerges -eq $null) {
     Write-Output "No backmerge required to develop."
   } else {
-    Write-Output "Backmerge required, please open: $(GetGithubUrl)/compare/master?expand=1&title=Backmerge+from+master+to+develop"
+    Write-Output "Backmerge required, please open: $(GetGithubUrl)/compare/master?expand=1&title=Backmerge+from+master+to+develop&body=Backmerge"
   }
 
   # For any hotfix branches
@@ -121,7 +121,7 @@ function Backmerge {
     if ($pendingMerges -eq $null) {
       Write-Output "No backmerge required for $branch."
     } else {
-      Write-Output "Backmerge required for $branch, please open: $(GetGithubUrl)/compare/$branch...master?expand=1&title=Backmerge+from+master+to+$branch"
+      Write-Output "Backmerge required for $branch, please open: $(GetGithubUrl)/compare/$branch...master?expand=1&title=Backmerge+from+master+to+$branch&body=Backmerge"
     }
   }
 }
