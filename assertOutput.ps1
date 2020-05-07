@@ -22,6 +22,6 @@ if (!("$output" -eq "$message") -and $assertExactMatch) {
   throw "Command output did not contain: $message. Was $output"
 }
 
-if (!("$output" -Match "$message") -and $assertPartialMatch) {
+if (!("$output".Contains("$message")) -and $assertPartialMatch) {
   throw "Command output did not contain: $message. Was $output"
 }

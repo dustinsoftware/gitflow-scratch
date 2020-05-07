@@ -96,9 +96,9 @@ RUN git commit -a -m "Hotfix readme update"
 RUN git push origin release-100-1
 
 RUN pwsh /app/release.ps1 -mark_released -create_tag -version 100
-RUN pwsh /app/release.ps1 -mark_released -create_tag -version 100.1
+RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -mark_released -create_tag -version 100.1" "Backmerge required, please open: /git-upstream/.git/compare/master?expand=1&title=Backmerge+from+release-100-1+to+develop Backmerge required for release-101, please open: /git-upstream/.git/compare/release-101...master?expand=1&title=Backmerge+from+release-100-1+to+release-101" -assertPass -assertPartialMatch
 
-RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -mark_released -version 101" "master contains commits not merged back into release-101" -assertPartialMatch -assertFail
+RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -mark_released -version 101" "master contains commits not merged back into release-101. Please fix that before proceeding. /git-upstream/.git/compare/master?expand=1&title=Backmerge+from+master+to+develop" -assertPartialMatch -assertFail
 
 RUN git checkout release-101
 RUN git merge origin/master -m "Backmerge"

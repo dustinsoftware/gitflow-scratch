@@ -70,7 +70,7 @@ function CheckForPendingBackmerge() {
   $pendingMerges = InvokeAndCheckExit "git diff origin/$backmerge_branchname...origin/master"
 
   if (!($pendingMerges -eq $null)) {
-    throw "master contains commits not merged back into $backmerge_branchname. Please fix that before proceeding. https://github.com/dustinsoftware/gitflow-scratch/compare/master?expand=1&title=Backmerge"
+    throw "master contains commits not merged back into $backmerge_branchname. Please fix that before proceeding. $(GetGithubUrl)/compare/master?expand=1&title=Backmerge+from+master+to+develop"
   }
 }
 
@@ -203,7 +203,7 @@ if ($mark_released) {
   InvokeAndCheckExit "git checkout -q origin/$branch_name"
 
   if (!($Env:CI -eq '1')) {
-    Write-Output "About to mark $branch_name as released and push tags for $version. Type OK to continue"
+    Write-Output "About to mark $branch_name as released. Type OK to continue"
     if (!((Read-Host) -ieq 'ok')) {
       throw "Sorry, cannot continue."
     }
@@ -226,7 +226,7 @@ if ($mark_released) {
   if ($pendingMerges -eq $null) {
     Write-Output "No backmerge required to develop."
   } else {
-    Write-Output "Backmerge required, please open: $(GetGithubUrl)/compare/master?expand=1&title=Backmerge"
+    Write-Output "Backmerge required, please open: $(GetGithubUrl)/compare/master?expand=1&title=Backmerge+from+$branch_name+to+develop"
   }
 
   # For any hotfix branches
@@ -237,7 +237,7 @@ if ($mark_released) {
     if ($pendingMerges -eq $null) {
       Write-Output "No backmerge required for $branch."
     } else {
-      Write-Output "Backmerge required for $branch, please open: $(GetGithubUrl)/compare/$branch...master?expand=1&title=Backmerge"
+      Write-Output "Backmerge required for $branch, please open: $(GetGithubUrl)/compare/$branch...master?expand=1&title=Backmerge+from+$branch_name+to+$branch"
     }
   }
 }
