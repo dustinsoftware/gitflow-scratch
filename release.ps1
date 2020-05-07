@@ -9,7 +9,8 @@ param(
   # Skip pushing anything
   [switch] $safe_mode,
   [switch] $list_releases,
-  [switch] $create_tag # some CI environments will tag releases
+  [switch] $create_tag, # some CI environments will tag releases,
+  [switch] $backmerge # kick off backmerge in case any branches are out of date
 )
 
 # Release script that enforces a one way commit history on master.
@@ -101,6 +102,27 @@ function GetGithubUrl {
     return $output | Select-String -Pattern $remoteRegex | % { "https://github.com/$($_.matches.groups[1])/$($_.matches.groups[2])"}
   } else {
     return $output
+  }
+}
+
+function Backmerge {
+  $pendingMerges = InvokeAndCheckExit "git diff origin/develop...origin/master"
+  if ($pendingMerges -eq $null) {
+    Write-Output "No backmerge required to develop."
+  } else {
+    Write-Output "Backmerge required, please open: $(GetGithubUrl)/compare/master?expand=1&title=Backmerge+from+master+to+develop"
+  }
+
+  # For any hotfix branches
+  $allRefs = InvokeAndCheckExit "git ls-remote origin"
+  foreach ($branch in $allRefs | Select-String -Pattern "refs\/heads\/(release-\d+(?:-\d+){0,2}$)" | % { "$($_.matches.groups[1])" } )
+  {
+    $pendingMerges = InvokeAndCheckExit "git diff origin/$branch...origin/master"
+    if ($pendingMerges -eq $null) {
+      Write-Output "No backmerge required for $branch."
+    } else {
+      Write-Output "Backmerge required for $branch, please open: $(GetGithubUrl)/compare/$branch...master?expand=1&title=Backmerge+from+master+to+$branch"
+    }
   }
 }
 
@@ -218,22 +240,9 @@ if ($mark_released) {
   RunWithSafetyCheck "git branch -d $branch_name"
   RunWithSafetyCheck "git push origin -d $branch_name"
 
-  $pendingMerges = InvokeAndCheckExit "git diff origin/develop...origin/master"
-  if ($pendingMerges -eq $null) {
-    Write-Output "No backmerge required to develop."
-  } else {
-    Write-Output "Backmerge required, please open: $(GetGithubUrl)/compare/master?expand=1&title=Backmerge+from+$branch_name+to+develop"
-  }
+  Backmerge
+}
 
-  # For any hotfix branches
-  $allRefs = InvokeAndCheckExit "git ls-remote origin"
-  foreach ($branch in $allRefs | Select-String -Pattern "refs\/heads\/(release-\d+(?:-\d+){0,2}$)" | % { "$($_.matches.groups[1])" } )
-  {
-    $pendingMerges = InvokeAndCheckExit "git diff origin/$branch...origin/master"
-    if ($pendingMerges -eq $null) {
-      Write-Output "No backmerge required for $branch."
-    } else {
-      Write-Output "Backmerge required for $branch, please open: $(GetGithubUrl)/compare/$branch...master?expand=1&title=Backmerge+from+$branch_name+to+$branch"
-    }
-  }
+if ($backmerge) {
+  Backmerge
 }
