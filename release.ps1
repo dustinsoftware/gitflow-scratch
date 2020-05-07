@@ -1,16 +1,16 @@
 param(
   # The release version
   [string] $version,
+  # Workflows (specify only one of these)
   [switch] $create_release,
   [switch] $create_hotfix_release,
-  [string] $hotfix_base_branch,
-  # Mark a release as live
   [switch] $mark_released,
-  # Skip pushing anything
-  [switch] $safe_mode,
   [switch] $list_releases,
-  [switch] $create_tag, # some CI environments will tag releases,
-  [switch] $backmerge # kick off backmerge in case any branches are out of date
+  [switch] $backmerge,
+  # Optional args
+  [string] $hotfix_base_branch,
+  [switch] $safe_mode, # Skip pushing anything
+  [switch] $create_tag # some CI environments will tag releases,
 )
 
 # Release script that enforces a one way commit history on master.
@@ -124,6 +124,10 @@ function Backmerge {
       Write-Output "Backmerge required for $branch, please open: $(GetGithubUrl)/compare/$branch...master?expand=1&title=Backmerge+from+master+to+$branch&body=Backmerge"
     }
   }
+}
+
+if (!("$list_releases $create_release $create_hotfix_release $mark_released $backmerge".Split("True").Length -eq 2)) {
+  throw "Please specify exactly one of: -list_releases, create_release, create_hotfix_release, mark_released, backmerge."
 }
 
 if ($list_releases) {

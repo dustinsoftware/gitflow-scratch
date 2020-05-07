@@ -160,3 +160,11 @@ RUN pwsh /app/release.ps1 -create_release -version 100.1.1
 RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -create_release -version 100.1.1.1" -assertFail
 
 RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -list_releases" "/git-upstream/.git Branch release-100 Branch release-100-1 Branch release-100-1-1" -assertExactMatch -assertPass
+
+# Accidentally no workflow or more than one workflow
+
+RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -create_release -create_hotfix_release -version 100.1.1.1" "Please specify exactly one of" -assertPartialMatch -assertFail
+RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -create_release -mark_released -version 100.1.1.1" "Please specify exactly one of" -assertPartialMatch -assertFail
+RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -create_release -list_releases -version 100.1.1.1" "Please specify exactly one of" -assertPartialMatch -assertFail
+RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -create_release -backmerge -version 100.1.1.1" "Please specify exactly one of" -assertPartialMatch -assertFail
+RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -version 100.1.1.1" "Please specify exactly one of" -assertPartialMatch -assertFail
