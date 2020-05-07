@@ -78,7 +78,7 @@ function GetBranchName() {
 
   $versionRegex = "(\d{3,})(?:\.(\d{1,}))?"
   if (!($version -match $versionRegex)) {
-    throw "Version did not match the pattern 'major' or 'major.minor'"
+    throw "Version did not match the pattern 'major' or 'major.minor'. Eg. '123.4' instead of 'release-123-4'."
   }
 
   $matchedVersion = $version | Select-String -Pattern $versionRegex
@@ -96,8 +96,18 @@ function GetBranchName() {
 if ($list_releases) {
   InvokeAndCheckExit "git fetch origin"
   $allRefs = InvokeAndCheckExit "git ls-remote origin"
+  if (!($Env:CI -eq '1')) {
+    Write-Output "Current release branches:"
+  }
   foreach ($branch in $allRefs | Select-String -Pattern "refs\/heads\/(release-\d+(?:-\d+)*$)" | % { "$($_.matches.groups[1])" } ) {
-    Write-Output $branch
+    Write-Output "Branch $branch"
+  }
+
+  if (!($Env:CI -eq '1')) {
+    Write-Output "Last 5 tags:"
+  }
+  foreach ($branch in $allRefs | Select-String -Pattern "refs\/tags\/(.*)$" | % { "$($_.matches.groups[1])" } | Select -Last 5 ) {
+    Write-Output "Tag $branch"
   }
 }
 
@@ -106,14 +116,7 @@ if ($create_release) {
   CheckForPendingBackmerge "develop"
 
   if ($version -eq "") {
-    Write-Output "No version specified. Finding latest tag."
-    $allTags = InvokeAndCheckExit "git ls-remote --tags origin"
-    $maximum = ($allTags | Select-String -Pattern "refs\/tags\/v(\d+)" | % { "$($_.matches.groups[1])" } | Measure-Object -Maximum).Maximum
-    $version = $maximum + 1
-    Write-Output "Creating $version. Please type $version continue."
-    if (!((Read-Host) -eq $version)) {
-      throw "Sorry, cannot continue."
-    }
+    throw "No version specified. Please run -list_releases and then pass in a version with -version."
   }
   $branch_name = GetBranchName $version
 
