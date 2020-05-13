@@ -131,7 +131,7 @@ function Backmerge {
   }
 }
 
-if (!("$list_releases $create_release $create_hotfix_release $mark_released $backmerge".Split("True").Length -eq 2)) {
+if (!("$list_releases $create_release $create_hotfix_release $mark_released $backmerge".Trim().Split(" ", [System.StringSplitOptions]::RemoveEmptyEntries)).Length -eq 1) {
   throw "Please specify exactly one of: -list_releases, create_release, create_hotfix_release, mark_released, backmerge."
 }
 
