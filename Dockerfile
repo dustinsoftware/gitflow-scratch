@@ -38,6 +38,7 @@ RUN pwsh /app/release.ps1 -create_release -version 100
 RUN pwsh /app/release.ps1 -mark_released -version 100
 
 RUN pwsh /app/assertOutput.ps1 "git diff origin/master...origin/develop" "" -assertExactMatch -assertPass
+RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -create_release -version 100" -assertFail
 
 RUN git log --all --graph --decorate
 

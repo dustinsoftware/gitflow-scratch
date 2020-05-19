@@ -161,6 +161,9 @@ if ($create_release) {
   }
   $branch_name = GetBranchName $version
 
+  if (DoesRefExist "refs/tags/v$version") {
+    throw "Tag $version already exists on remote, please delete it and try again"
+  }
   if (DoesRefExist "refs/remotes/origin/$branch_name") {
     throw "Branch $branch_name already exists on remote, please delete it and try again"
   }
