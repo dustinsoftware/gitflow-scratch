@@ -10,8 +10,7 @@ param(
   # Optional args
   [string] $hotfix_base_branch,
   [string] $backmerge_branchname,
-  [switch] $safe_mode, # Skip pushing anything
-  [switch] $create_tag # some CI environments will tag releases,
+  [switch] $safe_mode # Skip pushing anything
 )
 
 # Release script that enforces a one way commit history on master.
@@ -162,6 +161,9 @@ if ($create_release) {
   }
   $branch_name = GetBranchName $version
 
+  if (DoesRefExist "refs/tags/v$version") {
+    throw "Tag $version already exists on remote, please delete it and try again"
+  }
   if (DoesRefExist "refs/remotes/origin/$branch_name") {
     throw "Branch $branch_name already exists on remote, please delete it and try again"
   }
@@ -236,13 +238,11 @@ if ($mark_released) {
     }
   }
 
-  if ($create_tag) {
-    if (DoesRefExist "refs/tags/$version") {
-      Write-Output "Tag $version already exists on remote, skipping"
-    } else {
-      RunWithSafetyCheck "git tag v$version"
-      RunWithSafetyCheck "git push origin --tags"
-    }
+  if (DoesRefExist "refs/tags/$version") {
+    Write-Output "Tag $version already exists on remote, skipping"
+  } else {
+    RunWithSafetyCheck "git tag v$version"
+    RunWithSafetyCheck "git push origin --tags"
   }
 
   RunWithSafetyCheck "git push origin HEAD:master"
