@@ -238,7 +238,7 @@ if ($mark_released) {
     }
   }
 
-  if (DoesRefExist "refs/tags/$version") {
+  if (DoesRefExist "refs/tags/v$version") {
     Write-Output "Tag $version already exists on remote, skipping"
   } else {
     RunWithSafetyCheck "git tag v$version"

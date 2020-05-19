@@ -170,3 +170,17 @@ RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -create_release -mark_rele
 RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -create_release -list_releases -version 100.1.1.1" "Please specify exactly one of" -assertPartialMatch -assertFail
 RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -create_release -backmerge -version 100.1.1.1" "Please specify exactly one of" -assertPartialMatch -assertFail
 RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -version 100.1.1.1" "Please specify exactly one of" -assertPartialMatch -assertFail
+
+# Tag exists already
+FROM build
+RUN echo 'typical workflow'
+
+RUN echo hi >> README.md
+
+RUN git commit -a -m "Readme update"
+RUN git push origin develop
+
+RUN pwsh /app/release.ps1 -create_release -version 100
+RUN git tag v100
+RUN git push --tags
+RUN pwsh /app/release.ps1 -mark_released -version 100
