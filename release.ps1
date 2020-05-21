@@ -242,11 +242,15 @@ if ($mark_released) {
     Write-Output "Tag $version already exists on remote, skipping"
   } else {
     RunWithSafetyCheck "git tag v$version"
-    RunWithSafetyCheck "git push origin --tags"
+    RunWithSafetyCheck "git push origin v$version"
   }
 
   RunWithSafetyCheck "git push origin HEAD:master"
-  RunWithSafetyCheck "git branch -d $branch_name"
+
+  if (DoesRefExist "refs/heads/$branch_name") {
+    RunWithSafetyCheck "git branch -d $branch_name"
+  }
+
   RunWithSafetyCheck "git push origin -d $branch_name"
 
   Backmerge "master"

@@ -35,7 +35,14 @@ RUN git commit -a -m "Readme update"
 RUN git push origin develop
 
 RUN pwsh /app/release.ps1 -create_release -version 100
+
+RUN pwsh /app/assertOutput.ps1 "git show-ref refs/heads/release-100" -assertPass
+RUN pwsh /app/assertOutput.ps1 "git show-ref refs/remotes/origin/release-100" -assertPass
+
 RUN pwsh /app/release.ps1 -mark_released -version 100
+
+RUN pwsh /app/assertOutput.ps1 "git show-ref refs/heads/release-100" -assertFail
+RUN pwsh /app/assertOutput.ps1 "git show-ref refs/remotes/origin/release-100" -assertFail
 
 RUN pwsh /app/assertOutput.ps1 "git diff origin/master...origin/develop" "" -assertExactMatch -assertPass
 RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -create_release -version 100" -assertFail
@@ -182,5 +189,13 @@ RUN git push origin develop
 
 RUN pwsh /app/release.ps1 -create_release -version 100
 RUN git tag v100
-RUN git push --tags
+RUN git push origin v100
+RUN pwsh /app/release.ps1 -mark_released -version 100
+
+# Release branch does not exist locally
+FROM build
+
+RUN pwsh /app/release.ps1 -create_release -version 100
+RUN git checkout develop
+RUN git branch -D release-100
 RUN pwsh /app/release.ps1 -mark_released -version 100
