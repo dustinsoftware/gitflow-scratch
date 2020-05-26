@@ -110,9 +110,9 @@ function Backmerge {
 
   $pendingMerges = InvokeAndCheckExit "git diff origin/develop...origin/$($backmerge_branchname)"
   if ($pendingMerges -eq $null) {
-    Write-Host "No backmerge required for develop."
+    Write-Host "No merge required for develop."
   } else {
-    Write-Host -ForegroundColor yellow -NoNewLine "Backmerge required for develop, please open: "
+    Write-Host -ForegroundColor yellow -NoNewLine "Merge required for develop, please open: "
     Write-Host "$(GetGithubUrl)/compare/$($backmerge_branchname)?expand=1&title=Backmerge+from+$($backmerge_branchname)+to+develop&body=Backmerge"
   }
 
@@ -120,11 +120,15 @@ function Backmerge {
   $allRefs = InvokeAndCheckExit "git ls-remote origin"
   foreach ($branch in $allRefs | Select-String -Pattern "refs\/heads\/(release-\d+(?:-\d+){0,2}$)" | % { "$($_.matches.groups[1])" } )
   {
+    $isStaleBranch = InvokeAndCheckExit "git diff origin/$($backmerge_branchname)...origin/$branch"
     $pendingMerges = InvokeAndCheckExit "git diff origin/$branch...origin/$($backmerge_branchname)"
     if ($pendingMerges -eq $null) {
-      Write-Host "No backmerge required for $branch."
-    } else {
-      Write-Host -ForegroundColor yellow -NoNewLine "Backmerge required for $branch, please open: "
+      Write-Host "No merge required for $branch."
+    } elseif ($isStaleBranch -eq $null) {
+      Write-Host "Ignoring already released branch $branch"
+    }
+    else {
+      Write-Host -ForegroundColor yellow -NoNewLine "Merge required for $branch, please open: "
       Write-Host "$(GetGithubUrl)/compare/$branch...$($backmerge_branchname)?expand=1&title=Backmerge+from+$backmerge_branchname+to+$branch&body=Backmerge"
     }
   }
@@ -142,7 +146,11 @@ if ($list_releases) {
     Write-Output "Current release branches:"
   }
   foreach ($branch in $allRefs | Select-String -Pattern "refs\/heads\/(release-\d+(?:-\d+){0,2}$)" | % { "$($_.matches.groups[1])" } ) {
-    Write-Output "Branch $branch"
+    if ((InvokeAndCheckExit "git diff origin/master...origin/$branch") -eq $null) {
+      Write-Host -ForegroundColor yellow "No unreleased commits - $branch"
+    } else {
+      Write-Output "Branch $branch"
+    }
   }
 
   if (!($Env:CI -eq '1')) {
@@ -200,7 +208,7 @@ if ($create_hotfix_release) {
   }
   $pendingMerges = InvokeAndCheckExit "git diff origin/$hotfix_base_branch...origin/master"
   if (!($pendingMerges -eq $null)) {
-    throw "Backmerge required from master into $hotfix_base_branch first."
+    throw "Merge required from master into $hotfix_base_branch first."
   }
 
   if (!($Env:CI -eq '1')) {

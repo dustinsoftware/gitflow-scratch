@@ -106,9 +106,9 @@ RUN git commit -a -m "Hotfix readme update"
 RUN git push origin release-100-1
 
 RUN pwsh /app/release.ps1 -mark_released -version 100
-RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -backmerge -backmerge_branchname release-100-1" "Backmerge required for develop, please open: /git-upstream/.git/compare/release-100-1?expand=1&title=Backmerge+from+release-100-1+to+develop&body=Backmerge No backmerge required for release-100-1. Backmerge required for release-101, please open: /git-upstream/.git/compare/release-101...release-100-1?expand=1&title=Backmerge+from+release-100-1+to+release-101&body=Backmerge" -assertPass -assertPartialMatch
-RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -mark_released -version 100.1" "Backmerge required for develop, please open: /git-upstream/.git/compare/master?expand=1&title=Backmerge+from+master+to+develop&body=Backmerge Backmerge required for release-101, please open: /git-upstream/.git/compare/release-101...master?expand=1&title=Backmerge+from+master+to+release-101&body=Backmerge" -assertPass -assertPartialMatch
-RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -backmerge -backmerge_branchname master" "Backmerge required for develop, please open: /git-upstream/.git/compare/master?expand=1&title=Backmerge+from+master+to+develop&body=Backmerge Backmerge required for release-101, please open: /git-upstream/.git/compare/release-101...master?expand=1&title=Backmerge+from+master+to+release-101&body=Backmerge" -assertPass -assertPartialMatch
+RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -backmerge -backmerge_branchname release-100-1" "Merge required for develop, please open: /git-upstream/.git/compare/release-100-1?expand=1&title=Backmerge+from+release-100-1+to+develop&body=Backmerge No merge required for release-100-1. Ignoring already released branch release-101" -assertPass -assertPartialMatch
+RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -mark_released -version 100.1" "Merge required for develop, please open: /git-upstream/.git/compare/master?expand=1&title=Backmerge+from+master+to+develop&body=Backmerge Ignoring already released branch release-101" -assertPass -assertPartialMatch
+RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -backmerge -backmerge_branchname master" "Merge required for develop, please open: /git-upstream/.git/compare/master?expand=1&title=Backmerge+from+master+to+develop&body=Backmerge Ignoring already released branch release-101" -assertPass -assertPartialMatch
 
 RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -mark_released -version 101" "master contains commits not merged back into release-101. Please fix that before proceeding. /git-upstream/.git/compare/master?expand=1&title=Backmerge+from+master+to+develop&body=Backmerge" -assertPartialMatch -assertFail
 
@@ -136,7 +136,12 @@ RUN pwsh /app/release.ps1 -create_release -version 101
 RUN git checkout -b release-100-2-somedata
 RUN git push origin release-100-2-somedata
 
-RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -list_releases" "/git-upstream/.git Branch release-100 Branch release-100-1 Branch release-101" -assertExactMatch -assertPass
+RUN git checkout release-100
+RUN echo hi >> README.md
+RUN git commit -a -m "Readme update"
+RUN git push origin release-100
+
+RUN pwsh /app/assertOutput.ps1 "pwsh /app/release.ps1 -list_releases" "/git-upstream/.git Branch release-100 No unreleased commits - release-100-1 No unreleased commits - release-101" -assertExactMatch -assertPass
 
 # Github URL mapping
 
